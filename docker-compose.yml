@@ -1,0 +1,12 @@
+version: "3.9"
+   
+services:
+  web:
+    build: ./web
+    command: python manage.py runserver 0.0.0.0:7555
+    volumes:
+      - ./web:/code/web:rw
+    ports:
+      - "7555:7555"
+
+

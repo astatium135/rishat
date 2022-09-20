@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{{item.name}}</title>
+        <script src="https://js.stripe.com/v3/"></script>
+        {% csrf_token %}
+    </head>
+    <body>
+        <h1>{{item.name}}</h1>
+        <p>{{item.description}}</p>
+        <p align="right">{{item.price}} рублей</p>
+        <!--<p align="right"><a href="{% url 'items:buy' item.id %}">Купить</a></p>-->
+        <button id="buy">Купить</button>
+        <input type="number" id="count" value="1">
+        <button id="add" value="0">Добавить в заказ</button>
+        <script>
+            var stripe = Stripe('pk_test_51LiWiEDRC9yirk63omp79swT1YnQZ1ty154MjRfg0poH5AU2JerTBNXRtt7R0mFrVUOgKisMYXxEFKurYrvjyNEe00KavqJpaQ');
+            var buyButton = document.getElementById("buy");
+            buyButton.addEventListener('click', function(){
+                fetch(
+                    "{% url 'items:buy' item.id %}", 
+                    {
+                        method: 'GET',
+                    }
+                ).then(response => response.json())
+                .then(session => stripe.redirectToCheckout({ sessionId: session.id }))
+            });
+            var addButton = document.getElementById("add");
+            addButton.addEventListener('click', function(){
+                count = document.getElementById("count").value;
+                if(count>0){
+                    fetch(
+                        "{% url 'items:add' %}",
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json;charset=utf-8',
+                                "X-CSRFToken": document.cookie
+                                    .split('; ')
+                                    .find((row) => row.startsWith('csrftoken='))
+                                    ?.split('=')[1],
+                            },
+                            body: JSON.stringify({id: "{{item.id}}", count: count})//"item={{item.pk}}&count="+count
+                        }
+                    ).then(response => {
+                        document.getElementById("count").setAttribute('value', '0')
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
